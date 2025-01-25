@@ -1,6 +1,5 @@
-import { MinMaxAgent } from "./min-max-agent";
 import { Agent, GameState, Position } from "./types";
-
+import seedrandom from "seedrandom";
 // snake-game.ts
 export class SnakeGame implements GameState {
   private canvas: HTMLCanvasElement;
@@ -18,6 +17,8 @@ export class SnakeGame implements GameState {
   private isAIGame: boolean = false;
   width: number;
   height: number;
+
+  private rng = seedrandom("42");
 
   constructor(
     canvasId: string,
@@ -129,11 +130,15 @@ export class SnakeGame implements GameState {
     );
   }
 
-  private generateFood() {
-    return {
-      x: Math.floor(Math.random() * this.tileCount),
-      y: Math.floor(Math.random() * this.tileCount),
-    };
+  private generateFood(): Position {
+    const x = Math.floor(this.rng() * this.tileCount);
+    const y = Math.floor(this.rng() * this.tileCount);
+    const pos = { x, y };
+    if (this.snake.some((segment) => segment.x === x && segment.y === y)) {
+      // Check if food is generated on the snake
+      return this.generateFood();
+    }
+    return pos;
   }
 
   private checkCollision() {
