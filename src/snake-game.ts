@@ -174,10 +174,9 @@ export class SnakeGame implements GameState {
     }
 
     // Start new game loop
-    this.gameLoop = setInterval(
-      () => this.drawGame(),
-      100
-    ) as unknown as number;
+    this.gameLoop = window.setInterval(() => {
+      this.drawGame();
+    }, 100) as unknown as number;
   }
 
   public endGame() {
@@ -192,7 +191,12 @@ export class SnakeGame implements GameState {
 
   public startAIGame(agent: Agent) {
     this.isAIGame = true;
-    this.gameLoop = setInterval(() => {
+    // Clear any existing game loop
+    if (this.gameLoop) {
+      clearInterval(this.gameLoop);
+    }
+
+    this.gameLoop = window.setInterval(() => {
       const nextMove = agent.getNextMove(this);
       this.dx = nextMove.x - this.snake[0].x;
       this.dy = nextMove.y - this.snake[0].y;
