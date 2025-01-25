@@ -1,24 +1,24 @@
-import './style.css'
-import typescriptLogo from './typescript.svg'
-import viteLogo from '/vite.svg'
-import { setupCounter } from './counter.ts'
+import "./style.css";
+import { SnakeGame } from "./snake-game";
 
-document.querySelector<HTMLDivElement>('#app')!.innerHTML = `
+// Update the HTML to include Snake game elements
+document.querySelector<HTMLDivElement>("#app")!.innerHTML = `
   <div>
-    <a href="https://vite.dev" target="_blank">
-      <img src="${viteLogo}" class="logo" alt="Vite logo" />
-    </a>
-    <a href="https://www.typescriptlang.org/" target="_blank">
-      <img src="${typescriptLogo}" class="logo vanilla" alt="TypeScript logo" />
-    </a>
-    <h1>Vite + TypeScript</h1>
-    <div class="card">
-      <button id="counter" type="button"></button>
+    <h1>Snake Game</h1>
+    <div id="score">Score: 0</div>
+    <canvas id="game-board" width="400" height="400" style="border: 2px solid black;"></canvas>
+    <div id="game-over" style="display: none; text-align: center; margin-top: 10px;">
+      <h2>Game Over!</h2>
+      <button id="restart-btn">Restart</button>
     </div>
-    <p class="read-the-docs">
-      Click on the Vite and TypeScript logos to learn more
-    </p>
   </div>
-`
+`;
 
-setupCounter(document.querySelector<HTMLButtonElement>('#counter')!)
+// Initialize and start the game
+const game = new SnakeGame("game-board", "score", "game-over");
+game.startGame();
+
+// Add restart button functionality
+document.getElementById("restart-btn")!.addEventListener("click", () => {
+  game.resetGame();
+});
