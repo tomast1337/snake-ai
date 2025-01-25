@@ -1,4 +1,4 @@
-import { Agent, GameState, Position } from "./agent";
+import { Agent, GameState, Position } from "./types";
 
 // MinMax Agent Implementation
 export class MinMaxAgent implements Agent {
@@ -63,10 +63,6 @@ export class MinMaxAgent implements Agent {
   }
 
   private evaluateState(gameState: GameState): number {
-    // Evaluation function considers:
-    // 1. Current score
-    // 2. Distance to food
-    // 3. Avoiding walls and self
     const score = gameState.getScore();
     const snake = gameState.snake;
     const head = snake[0];
@@ -76,15 +72,22 @@ export class MinMaxAgent implements Agent {
     const foodDistance = Math.abs(head.x - food.x) + Math.abs(head.y - food.y);
 
     // Penalize being close to walls
-    const wallPenalty =
-      head.x <= 1 ||
-      head.x >= gameState.width - 2 ||
-      head.y <= 1 ||
-      head.y >= gameState.height - 2
-        ? -10
-        : 0;
+    const wallPenalty = 0;
+    head.x <= 1 ||
+    head.x >= gameState.width - 1 ||
+    head.y <= 1 ||
+    head.y >= gameState.height - 1
+      ? -10
+      : 0;
+
+    // Penalize being close to itself
+    const selfPenalty = snake
+      .slice(1)
+      .some((segment) => segment.x === head.x && segment.y === head.y)
+      ? -10
+      : 0;
 
     // Reward for being closer to food
-    return score * 10 - foodDistance + wallPenalty;
+    return score * 10 - foodDistance * 2 + wallPenalty + selfPenalty;
   }
 }
