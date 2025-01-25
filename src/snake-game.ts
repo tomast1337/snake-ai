@@ -203,6 +203,7 @@ export class SnakeGame implements GameState {
   public stop() {
     clearInterval(this.gameLoop);
     this.isAIGame = false;
+    this.initializeGame();
   }
 
   // Implement GameState interface
