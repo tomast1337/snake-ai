@@ -1,24 +1,73 @@
 import "./style.css";
 import { SnakeGame } from "./snake-game";
+import { MinMaxAgent } from "./min-max-agent";
 
 // Update the HTML to include Snake game elements
 document.querySelector<HTMLDivElement>("#app")!.innerHTML = `
-  <div>
-    <h1>Snake Game</h1>
-    <div id="score">Score: 0</div>
-    <canvas id="game-board" width="400" height="400" style="border: 2px solid black;"></canvas>
-    <div id="game-over" style="display: none; text-align: center; margin-top: 10px;">
-      <h2>Game Over!</h2>
-      <button id="restart-btn">Restart</button>
+<div>
+  <h1>Snake Game</h1>
+  <button class="start-button" id="start-btn">Start Game</button>
+  <div class="flex">
+    <div>
+      <h2>Player Snake</h2>
+      <div class="score" id="score">Score: 0</div>
+      <canvas class="game-board" id="game-board" width="400" height="400" style="border: 2px solid black;"></canvas>
+      <div id="game-over" style="display: none; text-align: center; margin-top: 10px;">
+        <h2>Game Ended!</h2>
+        <button class="restart-button" id="restart-btn">Restart</button>
+      </div>
+    </div>
+    <div>
+      <h2>AI Snake</h2>
+      <div class="score" id="score-ia">Score: 0</div>
+      <canvas class="game-board" id="game-board-ai" width="400" height="400" style="border: 2px solid black;"></canvas>
+      <div id="game-over-ia" style="display: none; text-align: center; margin-top: 10px;">
+        <h2>Game Ended!</h2>
+        <button class="restart-button" id="restart-btn">Restart</button>
+      </div>
     </div>
   </div>
+</div>
 `;
 
-// Initialize and start the game
-const game = new SnakeGame("game-board", "score", "game-over");
-game.startGame();
+const gamePlayer = new SnakeGame("game-board", "score", "game-over");
+const gameIA = new SnakeGame("game-board-ai", "score-ia", "game-over-ia");
 
-// Add restart button functionality
-document.getElementById("restart-btn")!.addEventListener("click", () => {
-  game.resetGame();
+const startButton = document.getElementById("start-btn")! as HTMLButtonElement;
+const resetButton = document.getElementById(
+  "restart-btn"
+)! as HTMLButtonElement;
+
+const resetGame = () => {
+  gamePlayer.resetGame();
+  gameIA.resetGame();
+};
+const startGame = () => {
+  startButton.textContent = "Game in progress, click to pause";
+  startButton.style.cursor = "not-allowed";
+  startButton.style.backgroundColor = "red";
+
+  gamePlayer.startGame();
+  gameIA.startAIGame(new MinMaxAgent());
+};
+const stopGame = () => {
+  startButton.textContent = "Start Game";
+  startButton.style.cursor = "pointer";
+  startButton.style.backgroundColor = "green";
+
+  gamePlayer.stop();
+  gameIA.stop();
+};
+
+startButton.addEventListener("click", () => {
+  if (startButton.textContent === "Start Game") {
+    startGame();
+  } else {
+    stopGame();
+  }
+});
+
+resetButton.addEventListener("click", () => {
+  resetGame();
+  stopGame();
 });
