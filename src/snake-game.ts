@@ -1,17 +1,23 @@
+import { MinMaxAgent } from "./min-max-agent";
+import { Agent, GameState, Position } from "./types";
+
 // snake-game.ts
-export class SnakeGame {
+export class SnakeGame implements GameState {
   private canvas: HTMLCanvasElement;
   private ctx: CanvasRenderingContext2D;
   private gridSize = 20;
   private tileCount: number;
-  private snake!: { x: number; y: number }[];
-  private food!: { x: number; y: number };
+  snake!: Position[];
+  food!: Position;
   private dx = 1;
   private dy = 0;
   private score = 0;
   private gameLoop!: number;
   private scoreElement: HTMLElement;
   private gameOverElement: HTMLElement;
+  private isAIGame: boolean = false;
+  width: number;
+  height: number;
 
   constructor(
     canvasId: string,
@@ -23,6 +29,8 @@ export class SnakeGame {
     this.tileCount = this.canvas.width / this.gridSize;
     this.scoreElement = document.getElementById(scoreElementId)!;
     this.gameOverElement = document.getElementById(gameOverElementId)!;
+    this.width = this.tileCount;
+    this.height = this.tileCount;
 
     this.initializeGame();
     this.setupEventListeners();
@@ -46,24 +54,28 @@ export class SnakeGame {
     document.addEventListener("keydown", (e) => {
       switch (e.key) {
         case "ArrowUp":
+        case "w":
           if (this.dy !== 1) {
             this.dx = 0;
             this.dy = -1;
           }
           break;
         case "ArrowDown":
+        case "s":
           if (this.dy !== -1) {
             this.dx = 0;
             this.dy = 1;
           }
           break;
         case "ArrowLeft":
+        case "a":
           if (this.dx !== 1) {
             this.dx = -1;
             this.dy = 0;
           }
           break;
         case "ArrowRight":
+        case "d":
           if (this.dx !== -1) {
             this.dx = 1;
             this.dy = 0;
@@ -155,7 +167,7 @@ export class SnakeGame {
     this.checkCollision();
   }
 
-  public startGame() {
+  public async startGame() {
     // Clear any existing game loop
     if (this.gameLoop) {
       clearInterval(this.gameLoop);
@@ -175,6 +187,88 @@ export class SnakeGame {
 
   public resetGame() {
     this.initializeGame();
-    this.startGame();
+    //this.startGame();
+  }
+
+  public startAIGame(agent: Agent) {
+    this.isAIGame = true;
+    this.gameLoop = setInterval(() => {
+      const nextMove = agent.getNextMove(this);
+      this.dx = nextMove.x - this.snake[0].x;
+      this.dy = nextMove.y - this.snake[0].y;
+      this.drawGame();
+    }, 100) as unknown as number;
+  }
+
+  public stop() {
+    clearInterval(this.gameLoop);
+    this.isAIGame = false;
+  }
+
+  // Implement GameState interface
+
+  public getValidNextPositions(): Position[] {
+    const head = this.snake[0];
+    const possibleMoves = [
+      { x: head.x + 1, y: head.y }, // Right
+      { x: head.x - 1, y: head.y }, // Left
+      { x: head.x, y: head.y + 1 }, // Down
+      { x: head.x, y: head.y - 1 }, // Up
+    ];
+
+    return possibleMoves.filter(
+      (move) => this.isValidMove(move) && !this.isSnakeCollision(move)
+    );
+  }
+
+  public getNextGameState(nextMove: Position): GameState {
+    const newGame = new SnakeGame("game-board", "score", "game-over");
+    newGame.snake = JSON.parse(JSON.stringify(this.snake));
+    newGame.food = { ...this.food };
+    newGame.dx = nextMove.x - this.snake[0].x;
+    newGame.dy = nextMove.y - this.snake[0].y;
+
+    newGame.moveSnake();
+
+    return newGame;
+  }
+
+  public getScore(): number {
+    return this.score;
+  }
+
+  public isGameOver(): boolean {
+    const head = this.snake[0];
+    if (
+      head.x < 0 ||
+      head.x >= this.tileCount ||
+      head.y < 0 ||
+      head.y >= this.tileCount
+    ) {
+      return true;
+    }
+
+    for (let i = 1; i < this.snake.length; i++) {
+      if (head.x === this.snake[i].x && head.y === this.snake[i].y) {
+        return true;
+      }
+    }
+
+    return false;
+  }
+
+  private isValidMove(move: Position): boolean {
+    return (
+      move.x >= 0 &&
+      move.x < this.tileCount &&
+      move.y >= 0 &&
+      move.y < this.tileCount
+    );
+  }
+
+  private isSnakeCollision(move: Position): boolean {
+    return this.snake.some(
+      (segment) => segment.x === move.x && segment.y === move.y
+    );
   }
 }
