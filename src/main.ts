@@ -12,26 +12,18 @@ document.querySelector<HTMLDivElement>("#app")!.innerHTML = `
       <h2>Player Snake</h2>
       <div class="score" id="score">Score: 0</div>
       <canvas class="game-board" id="game-board" width="400" height="400" style="border: 2px solid black;"></canvas>
-      <div id="game-over" style="display: none; text-align: center; margin-top: 10px;">
-        <h2>Game Ended!</h2>
-        <button class="restart-button" id="restart-btn">Restart</button>
-      </div>
     </div>
     <div>
       <h2>AI Snake</h2>
       <div class="score" id="score-ia">Score: 0</div>
       <canvas class="game-board" id="game-board-ai" width="400" height="400" style="border: 2px solid black;"></canvas>
-      <div id="game-over-ia" style="display: none; text-align: center; margin-top: 10px;">
-        <h2>Game Ended!</h2>
-        <button class="restart-button" id="restart-btn">Restart</button>
-      </div>
     </div>
   </div>
 </div>
 `;
 
-const gamePlayer = new SnakeGame("game-board", "score", "game-over");
-const gameIA = new SnakeGame("game-board-ai", "score-ia", "game-over-ia");
+const gamePlayer = new SnakeGame("game-board", "score");
+const gameIA = new SnakeGame("game-board-ai", "score-ia");
 
 const startButton = document.getElementById("start-btn")! as HTMLButtonElement;
 const resetButton = document.getElementById(
@@ -43,7 +35,7 @@ const resetGame = () => {
   gameIA.resetGame();
 };
 const startGame = () => {
-  startButton.textContent = "Game in progress, click to pause";
+  startButton.textContent = "Game in progress, click to stop";
   startButton.style.cursor = "not-allowed";
   startButton.style.backgroundColor = "red";
 
