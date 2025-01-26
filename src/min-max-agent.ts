@@ -1,10 +1,10 @@
 import { Agent, GameState, Position } from "./types";
 
-// MinMax Agent Implementation
+// MinMax Agent Implementation with Alpha-Beta Pruning
 export class MinMaxAgent implements Agent {
   private maxDepth: number;
 
-  constructor(maxDepth: number = 3) {
+  constructor(maxDepth: number = 7) {
     this.maxDepth = maxDepth;
   }
 
@@ -14,12 +14,18 @@ export class MinMaxAgent implements Agent {
     // If only one valid move, return it
     if (validMoves.length === 1) return validMoves[0];
 
-    // Evaluate each move using minimax
+    // Evaluate each move using minimax with alpha-beta pruning
     const moveScores = validMoves.map((move) => {
       const nextState = gameState.getNextGameState(move);
       return {
         move,
-        score: this.minimax(nextState, this.maxDepth, false),
+        score: this.minimax(
+          nextState,
+          this.maxDepth,
+          false,
+          Number.NEGATIVE_INFINITY,
+          Number.POSITIVE_INFINITY
+        ),
       };
     });
 
@@ -32,31 +38,47 @@ export class MinMaxAgent implements Agent {
   private minimax(
     gameState: GameState,
     depth: number,
-    isMaximizing: boolean
+    isMaximizing: boolean,
+    alpha: number,
+    beta: number
   ): number {
     // Base cases
     if (depth === 0 || gameState.isGameOver()) {
       return this.evaluateState(gameState);
     }
 
+    const validMoves = gameState.getValidNextPositions();
+
     if (isMaximizing) {
       let maxEval = Number.NEGATIVE_INFINITY;
-      const validMoves = gameState.getValidNextPositions();
 
       for (const move of validMoves) {
         const nextState = gameState.getNextGameState(move);
-        const evalScore = this.minimax(nextState, depth - 1, false);
+        const evalScore = this.minimax(
+          nextState,
+          depth - 1,
+          false,
+          alpha,
+          beta
+        );
         maxEval = Math.max(maxEval, evalScore);
+        alpha = Math.max(alpha, evalScore);
+        if (beta <= alpha) {
+          break; // Beta cut-off
+        }
       }
       return maxEval;
     } else {
       let minEval = Number.POSITIVE_INFINITY;
-      const validMoves = gameState.getValidNextPositions();
 
       for (const move of validMoves) {
         const nextState = gameState.getNextGameState(move);
-        const evalScore = this.minimax(nextState, depth - 1, true);
+        const evalScore = this.minimax(nextState, depth - 1, true, alpha, beta);
         minEval = Math.min(minEval, evalScore);
+        beta = Math.min(beta, evalScore);
+        if (beta <= alpha) {
+          break; // Alpha cut-off
+        }
       }
       return minEval;
     }
