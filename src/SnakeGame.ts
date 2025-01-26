@@ -1,4 +1,4 @@
-import Perlin from "./perlin";
+import Perlin from "./Perlin";
 import { Agent, GameState, Position } from "./types";
 import seedrandom, { PRNG } from "seedrandom";
 

@@ -1,6 +1,6 @@
 import "./style.css";
-import { SnakeGame } from "./snake-game";
-import { MinMaxAgent } from "./min-max-agent";
+import { SnakeGame } from "./SnakeGame";
+import { MinMaxAgent } from "./MinMaxAgent";
 
 // Update the HTML to include Snake game elements
 document.querySelector<HTMLDivElement>("#app")!.innerHTML = `

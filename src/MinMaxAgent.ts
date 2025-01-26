@@ -5,8 +5,6 @@ class AStar {
   private height: number;
   private snake: Position[];
   private food: Position;
-  private gradients: { [key: string]: Position } = {};
-
   constructor(
     snake: Position[],
     food: Position,
