@@ -1,5 +1,7 @@
+import Perlin from "./perlin";
 import { Agent, GameState, Position } from "./types";
 import seedrandom, { PRNG } from "seedrandom";
+
 type SnakeGameConfig = {
   canvasId?: string;
   scoreElementId?: string;
@@ -27,6 +29,7 @@ export class SnakeGame implements GameState {
 
   private rng: PRNG;
 
+  private perlin: Perlin;
   constructor({
     canvasId,
     scoreElementId,
@@ -34,6 +37,7 @@ export class SnakeGame implements GameState {
     seed = "42",
   }: SnakeGameConfig = {}) {
     this.rng = seedrandom(seed);
+    this.perlin = new Perlin(seed);
 
     if (!canvasId || !scoreElementId) {
       this.headlessMode = true;
@@ -45,6 +49,7 @@ export class SnakeGame implements GameState {
       this.scoreElement = document.getElementById(scoreElementId)!;
       this.ctx = this.canvas.getContext("2d")!;
       this.tileCount = this.canvas.width / this.gridSize;
+      this.renderTextureBackground();
     }
 
     this.width = this.tileCount;
@@ -110,16 +115,42 @@ export class SnakeGame implements GameState {
     if (this.headlessMode) return;
     this.ctx.fillStyle = "white";
     this.ctx.fillRect(0, 0, this.canvas!.width, this.canvas!.height);
+    this.renderTextureBackground();
+  }
+
+  private renderTextureBackground() {
+    const scale = 1;
+    for (let x = 0; x < this.tileCount * scale; x++) {
+      for (let y = 0; y < this.tileCount * scale; y++) {
+        const noise = this.perlin.get(x / 2.5, y / 2.5); // Adjust scaling factor
+        const min = 200;
+        const max = 255;
+        const color = Math.floor(min + noise * (max - min));
+        this.ctx.fillStyle = `rgb(${color}, ${color}, ${color})`;
+        this.ctx.fillRect(
+          x * (this.gridSize / scale), // Adjust grid size
+          y * (this.gridSize / scale), // Adjust grid size
+          this.gridSize / scale, // Adjust grid size
+          this.gridSize / scale
+        );
+      }
+    }
   }
 
   private drawSnake() {
-    this.ctx.fillStyle = "green";
-    this.snake.forEach((segment) => {
+    const len = this.snake.length;
+    this.snake.forEach((segment, i) => {
+      if (i === 0) {
+        this.ctx.fillStyle = "black";
+      } else {
+        const color = 255 - (255 / len) * i;
+        this.ctx.fillStyle = `hsl(${color}, 100%, 50%)`;
+      }
       this.ctx.fillRect(
         segment.x * this.gridSize,
         segment.y * this.gridSize,
-        this.gridSize - 2,
-        this.gridSize - 2
+        this.gridSize,
+        this.gridSize
       );
     });
   }
