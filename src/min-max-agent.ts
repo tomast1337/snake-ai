@@ -72,22 +72,28 @@ export class MinMaxAgent implements Agent {
     const foodDistance = Math.abs(head.x - food.x) + Math.abs(head.y - food.y);
 
     // Penalize being close to walls
-    const wallPenalty = 0;
-    head.x <= 1 ||
-    head.x >= gameState.width - 1 ||
-    head.y <= 1 ||
-    head.y >= gameState.height - 1
-      ? -10
-      : 0;
+    const wallPenalty =
+      head.x <= 1 ||
+      head.x >= gameState.width - 2 ||
+      head.y <= 1 ||
+      head.y >= gameState.height - 2
+        ? -100
+        : 0;
 
     // Penalize being close to itself
     const selfPenalty = snake
       .slice(1)
       .some((segment) => segment.x === head.x && segment.y === head.y)
-      ? -10
+      ? -100
       : 0;
 
     // Reward for being closer to food
-    return score * 10 - foodDistance * 2 + wallPenalty + selfPenalty;
+    const foodReward = -foodDistance * 20;
+
+    // Direct reward for eating the food
+    const eatFoodReward = head.x === food.x && head.y === food.y ? 100 : 0;
+
+    // Combine the factors
+    return score * 10 + foodReward + eatFoodReward + wallPenalty + selfPenalty;
   }
 }
