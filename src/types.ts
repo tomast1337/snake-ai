@@ -1,4 +1,6 @@
 export interface GameState {
+  dx: number;
+  dy: number;
   width: number;
   height: number;
   snake: Position[];

@@ -8,8 +8,8 @@ export class SnakeGame implements GameState {
   private headlessMode: boolean = false;
   private gridSize = 20;
   private tileCount: number;
-  private dx = 1;
-  private dy = 0;
+  public dx = 1;
+  public dy = 0;
   private score = 0;
   private gameLoop!: number;
   public snake!: Position[];
