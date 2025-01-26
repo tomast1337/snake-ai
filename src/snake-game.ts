@@ -2,6 +2,7 @@ import { Agent, GameState, Position } from "./types";
 import seedrandom from "seedrandom";
 // snake-game.ts
 export class SnakeGame implements GameState {
+  private readonly frameTime = 250;
   private canvas?: HTMLCanvasElement;
   private scoreElement?: HTMLElement;
   private ctx!: CanvasRenderingContext2D;
@@ -19,12 +20,14 @@ export class SnakeGame implements GameState {
 
   private rng = seedrandom("42");
 
-  constructor(canvasId?: string, scoreElementId?: string) {
+  constructor(canvasId?: string, scoreElementId?: string, boardsize = 20 * 15) {
     if (!canvasId || !scoreElementId) {
       this.headlessMode = true;
-      this.tileCount = 400 / this.gridSize;
+      this.tileCount = boardsize / this.gridSize;
     } else {
       this.canvas = document.getElementById(canvasId) as HTMLCanvasElement;
+      this.canvas.width = boardsize;
+      this.canvas.height = boardsize;
       this.scoreElement = document.getElementById(scoreElementId)!;
       this.ctx = this.canvas.getContext("2d")!;
       this.tileCount = this.canvas.width / this.gridSize;
@@ -38,11 +41,13 @@ export class SnakeGame implements GameState {
   }
 
   private initializeGame() {
-    this.snake = [
-      { x: 10, y: 10 },
-      { x: 9, y: 10 },
-      { x: 8, y: 10 },
-    ];
+    this.snake = [];
+    // get center of the board
+    const center = Math.floor(this.tileCount / 2);
+    for (let i = 0; i < 3; i++) {
+      this.snake.push({ x: center - i, y: center });
+    }
+
     this.food = this.generateFood();
     this.score = 0;
     this.dx = 1;
@@ -184,7 +189,7 @@ export class SnakeGame implements GameState {
     // Start new game loop
     this.gameLoop = window.setInterval(() => {
       this.drawGame();
-    }, 100) as unknown as number;
+    }, this.frameTime) as unknown as number;
   }
 
   public endGame() {
@@ -207,7 +212,7 @@ export class SnakeGame implements GameState {
       this.dx = nextMove.x - this.snake[0].x;
       this.dy = nextMove.y - this.snake[0].y;
       this.drawGame();
-    }, 100) as unknown as number;
+    }, this.frameTime) as unknown as number;
   }
 
   public stop() {

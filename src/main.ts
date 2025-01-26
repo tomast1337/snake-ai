@@ -11,12 +11,12 @@ document.querySelector<HTMLDivElement>("#app")!.innerHTML = `
     <div>
       <h2>Player Snake</h2>
       <div class="score" id="score">Score: 0</div>
-      <canvas class="game-board" id="game-board" width="400" height="400" style="border: 2px solid black;"></canvas>
+      <canvas class="game-board" id="game-board" style="border: 2px solid black;"></canvas>
     </div>
     <div>
       <h2>AI Snake</h2>
       <div class="score" id="score-ia">Score: 0</div>
-      <canvas class="game-board" id="game-board-ai" width="400" height="400" style="border: 2px solid black;"></canvas>
+      <canvas class="game-board" id="game-board-ai" style="border: 2px solid black;"></canvas>
     </div>
   </div>
 </main>
