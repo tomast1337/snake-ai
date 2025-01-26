@@ -1,5 +1,12 @@
 import { Agent, GameState, Position } from "./types";
-import seedrandom from "seedrandom";
+import seedrandom, { PRNG } from "seedrandom";
+type SnakeGameConfig = {
+  canvasId?: string;
+  scoreElementId?: string;
+  boardsize?: number;
+  seed?: string;
+};
+
 // snake-game.ts
 export class SnakeGame implements GameState {
   private readonly frameTime = 100;
@@ -18,9 +25,16 @@ export class SnakeGame implements GameState {
   public width: number;
   public height: number;
 
-  private rng = seedrandom("42");
+  private rng: PRNG;
 
-  constructor(canvasId?: string, scoreElementId?: string, boardsize = 20 * 15) {
+  constructor({
+    canvasId,
+    scoreElementId,
+    boardsize = 20 * 15,
+    seed = "42",
+  }: SnakeGameConfig = {}) {
+    this.rng = seedrandom(seed);
+
     if (!canvasId || !scoreElementId) {
       this.headlessMode = true;
       this.tileCount = boardsize / this.gridSize;

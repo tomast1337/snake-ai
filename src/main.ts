@@ -25,8 +25,18 @@ document.querySelector<HTMLDivElement>("#app")!.innerHTML = `
 </footer>
 `;
 
-const gamePlayer = new SnakeGame("game-board", "score");
-const gameIA = new SnakeGame("game-board-ai", "score-ia");
+const now = new Date().toISOString();
+
+const gamePlayer = new SnakeGame({
+  canvasId: "game-board",
+  scoreElementId: "score",
+  seed: now,
+});
+const gameIA = new SnakeGame({
+  canvasId: "game-board-ai",
+  scoreElementId: "score-ia",
+  seed: now,
+});
 
 const startButton = document.getElementById("start-btn")! as HTMLButtonElement;
 const resetButton = document.getElementById(

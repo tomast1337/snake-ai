@@ -73,26 +73,23 @@ export class MinMaxAgent implements Agent {
 
     const moveToUse = filteredMoves.length > 0 ? filteredMoves : validMoves;
 
-    const moveScores = moveToUse.map((move) => {
-      const nextState = gameState.getNextGameState(move);
-      return {
-        move,
-        score: this.minimax(
-          nextState,
-          this.maxDepth,
-          false,
-          Number.NEGATIVE_INFINITY,
-          Number.POSITIVE_INFINITY
-        ),
-      };
-    });
+    const moveScores = moveToUse
+      .map((move) => {
+        const nextState = gameState.getNextGameState(move);
+        return {
+          move,
+          score: this.minimax(
+            nextState,
+            this.maxDepth,
+            false,
+            Number.NEGATIVE_INFINITY,
+            Number.POSITIVE_INFINITY
+          ),
+        };
+      })
+      .sort((a, b) => b.score - a.score);
 
-    console.log(moveScores);
-
-    const bestMove = moveScores.reduce((best, current) =>
-      current.score > best.score ? current : best
-    ).move;
-
+    const bestMove = moveScores[0].move;
     // Track recent moves to prevent immediate backtracking
     this.recentMoves.push(bestMove);
     if (this.recentMoves.length > 5) {
@@ -122,9 +119,15 @@ export class MinMaxAgent implements Agent {
 
   private calculateFoodDistance(head: Position, food: Position): number {
     // Euclidean distance for more natural movement
-    return Math.sqrt(
-      Math.pow(head.x - food.x, 2) + Math.pow(head.y - food.y, 2)
-    );
+    //const dist = Math.sqrt(
+    //  Math.pow(head.x - food.x, 2) + Math.pow(head.y - food.y, 2)
+    //);
+    // manhattan distance
+    const manhattanDist = Math.abs(head.x - food.x) + Math.abs(head.y - food.y);
+    // if the food is in the same row or column, return the distance
+    if (head.x === food.x || head.y === food.y) return manhattanDist;
+    // if the food is in a diagonal, return the distance + 2, because the snake has to move 2 cells to reach the food
+    return manhattanDist + 2;
   }
 
   private getDirectionalBonus(snake: Position[], food: Position): number {
