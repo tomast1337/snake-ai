@@ -47,15 +47,3 @@ body {
     justify-content: center;
     gap: 1em;
 }
-
-#game-over {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    background-color: rgba(53, 53, 53, 0.9);
-    color: white;
-    padding: 20px;
-    border-radius: 10px;
-}
-
