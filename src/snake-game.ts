@@ -2,34 +2,34 @@ import { Agent, GameState, Position } from "./types";
 import seedrandom from "seedrandom";
 // snake-game.ts
 export class SnakeGame implements GameState {
-  private canvas: HTMLCanvasElement;
-  private ctx: CanvasRenderingContext2D;
+  private canvas?: HTMLCanvasElement;
+  private scoreElement?: HTMLElement;
+  private ctx!: CanvasRenderingContext2D;
+  private headlessMode: boolean = false;
   private gridSize = 20;
   private tileCount: number;
-  snake!: Position[];
-  food!: Position;
   private dx = 1;
   private dy = 0;
   private score = 0;
   private gameLoop!: number;
-  private scoreElement: HTMLElement;
-  private gameOverElement: HTMLElement;
-  private isAIGame: boolean = false;
-  width: number;
-  height: number;
+  public snake!: Position[];
+  public food!: Position;
+  public width: number;
+  public height: number;
 
   private rng = seedrandom("42");
 
-  constructor(
-    canvasId: string,
-    scoreElementId: string,
-    gameOverElementId: string
-  ) {
-    this.canvas = document.getElementById(canvasId) as HTMLCanvasElement;
-    this.ctx = this.canvas.getContext("2d")!;
-    this.tileCount = this.canvas.width / this.gridSize;
-    this.scoreElement = document.getElementById(scoreElementId)!;
-    this.gameOverElement = document.getElementById(gameOverElementId)!;
+  constructor(canvasId?: string, scoreElementId?: string) {
+    if (!canvasId || !scoreElementId) {
+      this.headlessMode = true;
+      this.tileCount = 400 / this.gridSize;
+    } else {
+      this.canvas = document.getElementById(canvasId) as HTMLCanvasElement;
+      this.scoreElement = document.getElementById(scoreElementId)!;
+      this.ctx = this.canvas.getContext("2d")!;
+      this.tileCount = this.canvas.width / this.gridSize;
+    }
+
     this.width = this.tileCount;
     this.height = this.tileCount;
 
@@ -47,11 +47,12 @@ export class SnakeGame implements GameState {
     this.score = 0;
     this.dx = 1;
     this.dy = 0;
-    this.scoreElement.textContent = `Score: ${this.score}`;
-    this.gameOverElement.style.display = "none";
+    if (this.scoreElement)
+      this.scoreElement.textContent = `Score: ${this.score}`;
   }
 
   private setupEventListeners() {
+    if (this.headlessMode) return;
     document.addEventListener("keydown", (e) => {
       switch (e.key) {
         case "ArrowUp":
@@ -87,8 +88,9 @@ export class SnakeGame implements GameState {
   }
 
   private clearCanvas() {
+    if (this.headlessMode) return;
     this.ctx.fillStyle = "white";
-    this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
+    this.ctx.fillRect(0, 0, this.canvas!.width, this.canvas!.height);
   }
 
   private drawSnake() {
@@ -113,8 +115,9 @@ export class SnakeGame implements GameState {
 
     if (head.x === this.food.x && head.y === this.food.y) {
       this.score++;
-      this.scoreElement.textContent = `Score: ${this.score}`;
       this.food = this.generateFood();
+      if (!this.headlessMode)
+        this.scoreElement!.textContent = `Score: ${this.score}`;
     } else {
       this.snake.pop();
     }
@@ -186,7 +189,6 @@ export class SnakeGame implements GameState {
 
   public endGame() {
     clearInterval(this.gameLoop);
-    this.gameOverElement.style.display = "block";
   }
 
   public resetGame() {
@@ -195,7 +197,6 @@ export class SnakeGame implements GameState {
   }
 
   public startAIGame(agent: Agent) {
-    this.isAIGame = true;
     // Clear any existing game loop
     if (this.gameLoop) {
       clearInterval(this.gameLoop);
@@ -211,7 +212,6 @@ export class SnakeGame implements GameState {
 
   public stop() {
     clearInterval(this.gameLoop);
-    this.isAIGame = false;
     this.initializeGame();
   }
 
@@ -232,11 +232,14 @@ export class SnakeGame implements GameState {
   }
 
   public getNextGameState(nextMove: Position): GameState {
-    const newGame = new SnakeGame("game-board", "score", "game-over");
+    const newGame = new SnakeGame();
     newGame.snake = JSON.parse(JSON.stringify(this.snake));
     newGame.food = { ...this.food };
     newGame.dx = nextMove.x - this.snake[0].x;
     newGame.dy = nextMove.y - this.snake[0].y;
+    newGame.score = this.score;
+    newGame.width = this.width;
+    newGame.height = this.height;
 
     newGame.moveSnake();
 
