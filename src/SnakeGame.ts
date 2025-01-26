@@ -1,5 +1,7 @@
+import { CanvasGameDrawer } from "./CanvasGameDrawer";
+import { HeadlessGameDrawer } from "./HeadlessGameDrawer";
 import Perlin from "./Perlin";
-import { Agent, GameState, Position } from "./types";
+import { Agent, GameDrawer, GameState, Position } from "./types";
 import seedrandom, { PRNG } from "seedrandom";
 
 type SnakeGameConfig = {
@@ -26,7 +28,7 @@ export class SnakeGame implements GameState {
   public food!: Position;
   public width: number;
   public height: number;
-
+  private drawer: GameDrawer;
   private rng: PRNG;
 
   private perlin: Perlin;
@@ -42,6 +44,7 @@ export class SnakeGame implements GameState {
     if (!canvasId || !scoreElementId) {
       this.headlessMode = true;
       this.tileCount = boardsize / this.gridSize;
+      this.drawer = new HeadlessGameDrawer();
     } else {
       this.canvas = document.getElementById(canvasId) as HTMLCanvasElement;
       this.canvas.width = boardsize;
@@ -49,7 +52,12 @@ export class SnakeGame implements GameState {
       this.scoreElement = document.getElementById(scoreElementId)!;
       this.ctx = this.canvas.getContext("2d")!;
       this.tileCount = this.canvas.width / this.gridSize;
-      this.renderTextureBackground();
+      this.drawer = new CanvasGameDrawer(
+        this.ctx,
+        this.gridSize,
+        this.tileCount,
+        this.perlin
+      );
     }
 
     this.width = this.tileCount;
@@ -111,50 +119,6 @@ export class SnakeGame implements GameState {
     });
   }
 
-  private clearCanvas() {
-    if (this.headlessMode) return;
-    this.ctx.fillStyle = "white";
-    this.ctx.fillRect(0, 0, this.canvas!.width, this.canvas!.height);
-    this.renderTextureBackground();
-  }
-
-  private renderTextureBackground() {
-    const scale = 1;
-    for (let x = 0; x < this.tileCount * scale; x++) {
-      for (let y = 0; y < this.tileCount * scale; y++) {
-        const noise = this.perlin.get(x / 2.5, y / 2.5); // Adjust scaling factor
-        const min = 200;
-        const max = 255;
-        const color = Math.floor(min + noise * (max - min));
-        this.ctx.fillStyle = `rgb(${color}, ${color}, ${color})`;
-        this.ctx.fillRect(
-          x * (this.gridSize / scale), // Adjust grid size
-          y * (this.gridSize / scale), // Adjust grid size
-          this.gridSize / scale, // Adjust grid size
-          this.gridSize / scale
-        );
-      }
-    }
-  }
-
-  private drawSnake() {
-    const len = this.snake.length;
-    this.snake.forEach((segment, i) => {
-      if (i === 0) {
-        this.ctx.fillStyle = "black";
-      } else {
-        const color = 255 - (255 / len) * i;
-        this.ctx.fillStyle = `hsl(${color}, 100%, 50%)`;
-      }
-      this.ctx.fillRect(
-        segment.x * this.gridSize,
-        segment.y * this.gridSize,
-        this.gridSize,
-        this.gridSize
-      );
-    });
-  }
-
   private moveSnake() {
     const head = {
       x: this.snake[0].x + this.dx,
@@ -171,16 +135,6 @@ export class SnakeGame implements GameState {
     } else {
       this.snake.pop();
     }
-  }
-
-  private drawFood() {
-    this.ctx.fillStyle = "red";
-    this.ctx.fillRect(
-      this.food.x * this.gridSize,
-      this.food.y * this.gridSize,
-      this.gridSize - 2,
-      this.gridSize - 2
-    );
   }
 
   private generateFood(): Position {
@@ -212,16 +166,15 @@ export class SnakeGame implements GameState {
     for (let i = 1; i < this.snake.length; i++) {
       if (head.x === this.snake[i].x && head.y === this.snake[i].y) {
         this.endGame();
+        this.drawer.drawGame(this);
         return;
       }
     }
   }
 
-  private drawGame() {
-    this.clearCanvas();
+  private updateGame(): void {
+    this.drawer.drawGame(this);
     this.moveSnake();
-    this.drawSnake();
-    this.drawFood();
     this.checkCollision();
   }
 
@@ -233,7 +186,7 @@ export class SnakeGame implements GameState {
 
     // Start new game loop
     this.gameLoop = window.setInterval(() => {
-      this.drawGame();
+      this.updateGame();
     }, this.frameTime) as unknown as number;
   }
 
@@ -256,7 +209,7 @@ export class SnakeGame implements GameState {
       const nextMove = agent.getNextMove(this);
       this.dx = nextMove.x - this.snake[0].x;
       this.dy = nextMove.y - this.snake[0].y;
-      this.drawGame();
+      this.updateGame();
     }, this.frameTime) as unknown as number;
   }
 

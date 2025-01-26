@@ -1,3 +1,5 @@
+import { SnakeGame } from "./SnakeGame";
+
 export interface GameState {
   dx: number;
   dy: number;
@@ -9,6 +11,11 @@ export interface GameState {
   getNextGameState: (nextMove: Position) => GameState;
   getScore: () => number;
   isGameOver: () => boolean;
+}
+
+export interface GameDrawer {
+  drawGame(state: SnakeGame): void;
+  clear(): void;
 }
 
 export interface Agent {
