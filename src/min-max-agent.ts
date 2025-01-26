@@ -5,7 +5,7 @@ export class MinMaxAgent implements Agent {
   private maxDepth: number;
   private recentMoves: Position[] = [];
 
-  constructor(maxDepth: number = 7) {
+  constructor(maxDepth: number = 10) {
     this.maxDepth = maxDepth;
   }
 
@@ -87,6 +87,8 @@ export class MinMaxAgent implements Agent {
       };
     });
 
+    console.log(moveScores);
+
     const bestMove = moveScores.reduce((best, current) =>
       current.score > best.score ? current : best
     ).move;
@@ -105,6 +107,8 @@ export class MinMaxAgent implements Agent {
   private evaluateState(gameState: GameState): number {
     const { snake, food } = gameState;
     const head = snake[0];
+
+    if (gameState.isGameOver()) return Number.NEGATIVE_INFINITY;
 
     // More nuanced distance calculation
     const foodDistance = this.calculateFoodDistance(head, food);

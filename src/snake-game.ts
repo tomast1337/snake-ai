@@ -2,7 +2,7 @@ import { Agent, GameState, Position } from "./types";
 import seedrandom from "seedrandom";
 // snake-game.ts
 export class SnakeGame implements GameState {
-  private readonly frameTime = 250;
+  private readonly frameTime = 100;
   private canvas?: HTMLCanvasElement;
   private scoreElement?: HTMLElement;
   private ctx!: CanvasRenderingContext2D;
