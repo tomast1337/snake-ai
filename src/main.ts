@@ -39,14 +39,7 @@ const gameIA = new SnakeGame({
 });
 
 const startButton = document.getElementById("start-btn")! as HTMLButtonElement;
-const resetButton = document.getElementById(
-  "restart-btn"
-)! as HTMLButtonElement;
 
-const resetGame = () => {
-  gamePlayer.resetGame();
-  gameIA.resetGame();
-};
 const startGame = () => {
   startButton.textContent = "Game in progress, click to stop";
   startButton.style.cursor = "not-allowed";
@@ -70,9 +63,4 @@ startButton.addEventListener("click", () => {
   } else {
     stopGame();
   }
-});
-
-resetButton.addEventListener("click", () => {
-  resetGame();
-  stopGame();
 });
