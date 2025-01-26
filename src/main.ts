@@ -4,8 +4,8 @@ import { MinMaxAgent } from "./min-max-agent";
 
 // Update the HTML to include Snake game elements
 document.querySelector<HTMLDivElement>("#app")!.innerHTML = `
-<div>
-  <h1>Snake Game</h1>
+<main>
+  <h1>Min Max Snake Game</h1>
   <button class="start-button" id="start-btn">Start Game</button>
   <div class="flex">
     <div>
@@ -19,7 +19,10 @@ document.querySelector<HTMLDivElement>("#app")!.innerHTML = `
       <canvas class="game-board" id="game-board-ai" width="400" height="400" style="border: 2px solid black;"></canvas>
     </div>
   </div>
-</div>
+</main>
+<footer>
+    <p>Created by <a href="https://www.linkedin.com/in/nicolas-vycas/">Nicolas Vycas Nery</a></p>
+</footer>
 `;
 
 const gamePlayer = new SnakeGame("game-board", "score");
