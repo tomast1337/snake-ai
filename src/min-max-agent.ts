@@ -3,36 +3,10 @@ import { Agent, GameState, Position } from "./types";
 // MinMax Agent Implementation with Alpha-Beta Pruning
 export class MinMaxAgent implements Agent {
   private maxDepth: number;
+  private recentMoves: Position[] = [];
 
   constructor(maxDepth: number = 7) {
     this.maxDepth = maxDepth;
-  }
-
-  getNextMove(gameState: GameState): Position {
-    const validMoves = gameState.getValidNextPositions();
-
-    // If only one valid move, return it
-    if (validMoves.length === 1) return validMoves[0];
-
-    // Evaluate each move using minimax with alpha-beta pruning
-    const moveScores = validMoves.map((move) => {
-      const nextState = gameState.getNextGameState(move);
-      return {
-        move,
-        score: this.minimax(
-          nextState,
-          this.maxDepth,
-          false,
-          Number.NEGATIVE_INFINITY,
-          Number.POSITIVE_INFINITY
-        ),
-      };
-    });
-
-    // Choose move with highest score
-    return moveScores.reduce((best, current) =>
-      current.score > best.score ? current : best
-    ).move;
   }
 
   private minimax(
@@ -84,38 +58,80 @@ export class MinMaxAgent implements Agent {
     }
   }
 
+  getNextMove(gameState: GameState): Position {
+    const validMoves = gameState.getValidNextPositions();
+
+    if (validMoves.length === 1) return validMoves[0];
+
+    // Remove recently visited moves
+    const filteredMoves = validMoves.filter(
+      (move) =>
+        !this.recentMoves.some(
+          (recent) => recent.x === move.x && recent.y === move.y
+        )
+    );
+
+    const moveToUse = filteredMoves.length > 0 ? filteredMoves : validMoves;
+
+    const moveScores = moveToUse.map((move) => {
+      const nextState = gameState.getNextGameState(move);
+      return {
+        move,
+        score: this.minimax(
+          nextState,
+          this.maxDepth,
+          false,
+          Number.NEGATIVE_INFINITY,
+          Number.POSITIVE_INFINITY
+        ),
+      };
+    });
+
+    const bestMove = moveScores.reduce((best, current) =>
+      current.score > best.score ? current : best
+    ).move;
+
+    // Track recent moves to prevent immediate backtracking
+    this.recentMoves.push(bestMove);
+    if (this.recentMoves.length > 5) {
+      this.recentMoves.shift();
+    }
+
+    return bestMove;
+  }
+
+  // Rest of the implementation remains the same...
+
   private evaluateState(gameState: GameState): number {
-    const score = gameState.getScore();
-    const snake = gameState.snake;
+    const { snake, food } = gameState;
     const head = snake[0];
-    const food = gameState.food;
 
-    // Calculate Manhattan distance to food
-    const foodDistance = Math.abs(head.x - food.x) + Math.abs(head.y - food.y);
+    // More nuanced distance calculation
+    const foodDistance = this.calculateFoodDistance(head, food);
 
-    // Penalize being close to walls
-    const wallPenalty =
-      head.x <= 1 ||
-      head.x >= gameState.width - 2 ||
-      head.y <= 1 ||
-      head.y >= gameState.height - 2
-        ? -100
-        : 0;
+    // Prefer direct paths
+    const directionalBonus = this.getDirectionalBonus(snake, food);
 
-    // Penalize being close to itself
-    const selfPenalty = snake
-      .slice(1)
-      .some((segment) => segment.x === head.x && segment.y === head.y)
-      ? -100
-      : 0;
+    // Combine evaluation factors
+    return gameState.getScore() * 100 - foodDistance * 10 + directionalBonus;
+  }
 
-    // Reward for being closer to food
-    const foodReward = -foodDistance * 20;
+  private calculateFoodDistance(head: Position, food: Position): number {
+    // Euclidean distance for more natural movement
+    return Math.sqrt(
+      Math.pow(head.x - food.x, 2) + Math.pow(head.y - food.y, 2)
+    );
+  }
 
-    // Direct reward for eating the food
-    const eatFoodReward = head.x === food.x && head.y === food.y ? 100 : 0;
+  private getDirectionalBonus(snake: Position[], food: Position): number {
+    const head = snake[0];
+    const xDirection = Math.sign(food.x - head.x);
+    const yDirection = Math.sign(food.y - head.y);
 
-    // Combine the factors
-    return score * 10 + foodReward + eatFoodReward + wallPenalty + selfPenalty;
+    // Bonus for moving towards food
+    return (
+      (xDirection === Math.sign(head.x) ? 10 : 0) +
+      (yDirection === Math.sign(head.y) ? 10 : 0)
+    );
   }
 }
