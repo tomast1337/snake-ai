@@ -1,9 +1,11 @@
 import "@/style.css";
 import "@/markdown.css";
+import "highlight.js/styles/base16/classic-light.css";
 import { SnakeGame } from "@/game/SnakeGame";
 import { MinMaxAgent } from "@/agents/MinMaxAgent";
-import { marked } from "marked";
-
+import { Marked } from "marked";
+import { markedHighlight } from "marked-highlight";
+import hljs from "highlight.js";
 // Update the HTML to include Snake game elements
 document.querySelector<HTMLDivElement>("#app")!.innerHTML = `
 <header>
@@ -37,7 +39,23 @@ const explanation = document.getElementById("article")! as HTMLDivElement;
 fetch("/README.md")
   .then((response) => response.text())
   .then((text) => {
-    explanation.innerHTML = marked(text, {
+    const marked = new Marked(
+      markedHighlight({
+        emptyLangClass: "hljs",
+        langPrefix: "hljs language-",
+        highlight: (code, lang) => {
+          if ((lang && hljs.getLanguage(lang)) || lang === "typescript") {
+            try {
+              return hljs.highlight(code, { language: lang }).value;
+            } catch (error) {
+              console.error("Error highlighting code", error);
+            }
+          }
+          return "";
+        },
+      })
+    );
+    explanation.innerHTML = marked.parse(text, {
       gfm: true,
       breaks: true,
       async: false,

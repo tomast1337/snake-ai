@@ -32,7 +32,7 @@ export interface GameState {
 
 This interface is crucial as it provides all the necessary information for both the game rendering and AI decision-making.
 
-Anothers interfaces are `Position` and `GameDrawer`, thoise just define the structure of a postion in a cartesian plane and the methods that a game drawer should implement, just to so the logic of the game is separated from the rendering logic.
+Anothers interfaces are `Position` and `GameDrawer`, thoise just define the structure of a postion in a cartesian plane and the methods that a game drawer should implement, just to so the logic of the game is separated from the rendering logic, so I can implement a game drawer for the console or a no draw game drawer for the AI.
 
 ```typescript
 export interface GameDrawer {
@@ -73,28 +73,13 @@ interface Agent {
 }
 ```
 
-## Key Technical Challenges
+A basic agent implementation just for exampling the code is the `RandomAgent`, that just returns a random valid move.
 
-### 1. Game State Management
-
-Managing game state was one of the primary challenges. The solution involves:
-
-- Immutable state updates
-- Clear separation between rendering and game logic
-- Efficient state copying for AI simulation
-
-### 2. AI Decision Making
-
-The MinMax with alpha-beta pruning algorithm was implemented to make the AI player competitive. Key challenges include:
-
-- Path finding in diagonal situations
-- Performance optimization with alpha-beta pruning
-- Evaluation function tuning
-
-### 3. Performance Optimization
-
-Several optimizations were implemented:
-
-- Efficient canvas rendering
-- Memory management for long-running games
-- State evaluation caching
+```typescript
+export class RandomAgent implements Agent {
+  getNextMove(gameState: GameState): Position {
+    const validMoves = gameState.getValidNextPositions();
+    return validMoves[Math.floor(Math.random() * validMoves.length)];
+  }
+}
+```
