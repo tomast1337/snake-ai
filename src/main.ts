@@ -1,13 +1,16 @@
 import "@/style.css";
+import "@/markdown.css";
 import { SnakeGame } from "@/game/SnakeGame";
 import { MinMaxAgent } from "@/agents/MinMaxAgent";
 import { marked } from "marked";
 
 // Update the HTML to include Snake game elements
 document.querySelector<HTMLDivElement>("#app")!.innerHTML = `
+<header>
+    <h1 style="font-family: 'Permanent Marker', cursive; color: #8c1aff;">Min Max Snake Game</h1>
+</header>
 <main>
 <section id="game">
-  <h1 style="font-family: 'Permanent Marker', cursive; color: #8c1aff;">Min Max Snake Game</h1>
   <button class="start-button" id="start-btn">Start Game</button>
   <div class="flex">
     <div>
@@ -22,7 +25,7 @@ document.querySelector<HTMLDivElement>("#app")!.innerHTML = `
     </div>
   </div>
   </section>
-  <section id="explanation" class="explanation">
+  <section id="article" class="markdown">
   </section>
 </main>
 <footer>
@@ -30,7 +33,7 @@ document.querySelector<HTMLDivElement>("#app")!.innerHTML = `
 </footer>
 `;
 
-const explanation = document.querySelector("#explanation")!;
+const explanation = document.getElementById("article")! as HTMLDivElement;
 fetch("/README.md")
   .then((response) => response.text())
   .then((text) => {
