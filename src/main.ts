@@ -1,10 +1,12 @@
-import "./style.css";
-import { SnakeGame } from "./SnakeGame";
-import { MinMaxAgent } from "./agents/MinMaxAgent";
+import "@/style.css";
+import { SnakeGame } from "@/game/SnakeGame";
+import { MinMaxAgent } from "@/agents/MinMaxAgent";
+import { marked } from "marked";
 
 // Update the HTML to include Snake game elements
 document.querySelector<HTMLDivElement>("#app")!.innerHTML = `
 <main>
+<section id="game">
   <h1 style="font-family: 'Permanent Marker', cursive; color: #8c1aff;">Min Max Snake Game</h1>
   <button class="start-button" id="start-btn">Start Game</button>
   <div class="flex">
@@ -19,11 +21,28 @@ document.querySelector<HTMLDivElement>("#app")!.innerHTML = `
       <canvas class="game-board" id="game-board-ai" style="width: 400px; height: 400px;"></canvas>
     </div>
   </div>
+  </section>
+  <section id="explanation" class="explanation">
+  </section>
 </main>
 <footer>
   <p style="font-family: 'Permanent Marker', cursive; color: #8c1aff;">Created by <a href="https://www.linkedin.com/in/nicolas-vycas/" style="color: #4CAF50;">Nicolas Vycas Nery</a></p>
 </footer>
 `;
+
+const explanation = document.querySelector("#explanation")!;
+fetch("/README.md")
+  .then((response) => response.text())
+  .then((text) => {
+    explanation.innerHTML = marked(text, {
+      gfm: true,
+      breaks: true,
+      async: false,
+    });
+  })
+  .catch((error) => {
+    console.error("Error fetching README.md", error);
+  });
 
 const now = new Date().toISOString();
 
