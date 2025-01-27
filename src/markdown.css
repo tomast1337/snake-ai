@@ -1,6 +1,10 @@
-/*
-Markdown Styling
-*/
+@font-face {
+  font-family: "Monocraft";
+  src: url("./Monocraft.ttc") format("truetype-collection");
+  font-weight: normal;
+  font-style: normal;
+}
+
 .markdown {
   font-family: "Permanent Marker", cursive;
   color: #333;
@@ -58,6 +62,7 @@ Markdown Styling
 }
 
 .markdown code {
+  font-family: "Monocraft", monospace;
   margin: 0;
   padding: 0;
   font-size: 1rem;
