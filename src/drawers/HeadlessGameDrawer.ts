@@ -1,12 +1,14 @@
-import { SnakeGame } from "../SnakeGame";
-import { GameDrawer } from "../types";
+import { SnakeGame } from "@/game/SnakeGame";
+import { GameDrawer } from "@/drawers/GameDrawer.inteface";
 
 export class HeadlessGameDrawer implements GameDrawer {
   public clear(): void {
     // No-op
+    return;
   }
 
-  public drawGame(state: SnakeGame): void {
+  public drawGame(_state: SnakeGame): void {
     // No-op
+    return;
   }
 }

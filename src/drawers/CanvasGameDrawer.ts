@@ -1,6 +1,7 @@
-import Perlin from "../Perlin";
-import { SnakeGame } from "../SnakeGame";
-import { GameDrawer, Position } from "../types";
+import Perlin from "@/util/Perlin";
+import { SnakeGame } from "@/game/SnakeGame";
+import { Position } from "@/types";
+import { GameDrawer } from "@/drawers/GameDrawer.inteface";
 
 export class CanvasGameDrawer implements GameDrawer {
   private ctx: CanvasRenderingContext2D;
