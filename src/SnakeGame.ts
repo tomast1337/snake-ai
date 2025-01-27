@@ -1,5 +1,5 @@
-import { CanvasGameDrawer } from "./CanvasGameDrawer";
-import { HeadlessGameDrawer } from "./HeadlessGameDrawer";
+import { CanvasGameDrawer } from "./drawers/CanvasGameDrawer";
+import { HeadlessGameDrawer } from "./drawers/HeadlessGameDrawer";
 import Perlin from "./Perlin";
 import { Agent, GameDrawer, GameState, Position } from "./types";
 import seedrandom, { PRNG } from "seedrandom";

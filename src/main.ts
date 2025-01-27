@@ -1,6 +1,6 @@
 import "./style.css";
 import { SnakeGame } from "./SnakeGame";
-import { MinMaxAgent } from "./MinMaxAgent";
+import { MinMaxAgent } from "./agents/MinMaxAgent";
 
 // Update the HTML to include Snake game elements
 document.querySelector<HTMLDivElement>("#app")!.innerHTML = `
@@ -31,11 +31,13 @@ const gamePlayer = new SnakeGame({
   canvasId: "game-board",
   scoreElementId: "score",
   seed: now,
+  boardsize: 20 * 25,
 });
 const gameIA = new SnakeGame({
   canvasId: "game-board-ai",
   scoreElementId: "score-ia",
   seed: now,
+  boardsize: 20 * 25,
 });
 
 const startButton = document.getElementById("start-btn")! as HTMLButtonElement;

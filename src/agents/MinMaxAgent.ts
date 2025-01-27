@@ -1,4 +1,4 @@
-import { Agent, GameState, Position } from "./types";
+import { Agent, GameState, Position } from "../types";
 
 class AStar {
   private width: number;

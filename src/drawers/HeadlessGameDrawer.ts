@@ -1,5 +1,5 @@
-import { SnakeGame } from "./SnakeGame";
-import { GameDrawer } from "./types";
+import { SnakeGame } from "../SnakeGame";
+import { GameDrawer } from "../types";
 
 export class HeadlessGameDrawer implements GameDrawer {
   public clear(): void {
