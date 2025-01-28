@@ -112,7 +112,6 @@ class AStar {
 
 export class MinMaxAgent implements Agent {
   private maxDepth: number;
-  private recentMoves: Position[] = [];
   private pathCache: Map<string, Position[]> = new Map();
 
   constructor(maxDepth: number = 10) {
@@ -173,17 +172,29 @@ export class MinMaxAgent implements Agent {
 
     if (validMoves.length === 1) return validMoves[0];
 
-    // Remove recently visited moves
-    const filteredMoves = validMoves.filter(
-      (move) =>
-        !this.recentMoves.some(
-          (recent) => recent.x === move.x && recent.y === move.y
-        )
+    // Get the A* path to the food
+    const path = this.getCachedPath(
+      gameState.snake,
+      gameState.food,
+      gameState.width,
+      gameState.height
     );
 
-    const moveToUse = filteredMoves.length > 0 ? filteredMoves : validMoves;
+    // If a path exists, prioritize moves along the path
+    if (path.length > 0) {
+      const nextPositionOnPath = path[1]; // The next step on the path
+      for (const move of validMoves) {
+        if (
+          move.x === nextPositionOnPath.x &&
+          move.y === nextPositionOnPath.y
+        ) {
+          return move;
+        }
+      }
+    }
 
-    const moveScores = moveToUse
+    // If no path exists, fall back to minimax
+    const moveScores = validMoves
       .map((move) => {
         const nextState = gameState.getNextGameState(move);
         return {
@@ -199,14 +210,7 @@ export class MinMaxAgent implements Agent {
       })
       .sort((a, b) => b.score - a.score);
 
-    const bestMove = moveScores[0].move;
-    // Track recent moves to prevent immediate backtracking
-    this.recentMoves.push(bestMove);
-    if (this.recentMoves.length > 5) {
-      this.recentMoves.shift();
-    }
-
-    return bestMove;
+    return moveScores[0].move;
   }
 
   private getDynamicDepth(gameState: GameState): number {
@@ -233,103 +237,25 @@ export class MinMaxAgent implements Agent {
     );
     const pathDistance = path.length;
 
-    // Directional bonus (encourage moving towards food)
-    const directionalBonus = this.getDirectionalBonus(snake, food);
+    // Bonus for being adjacent to the food
+    const isAdjacentToFood =
+      Math.abs(head.x - food.x) + Math.abs(head.y - food.y) === 1;
+    const foodBonus = isAdjacentToFood ? 10000 : 0; // Large bonus for eating food
 
-    // Available space (penalize moves that reduce available space)
-    const availableSpace = this.calculateAvailableSpace(gameState);
-
-    // Snake length (reward longer snakes)
-    const snakeLength = snake.length;
-
-    // Combine evaluation factors with dynamic weights
-    const foodWeight = 200; // Strongly prioritize food
+    // Combine evaluation factors
+    const foodWeight = 100; // Prioritize food
     const pathWeight = 10; // Penalize longer paths
-    const spaceWeight = 1; // Minimal penalty for reduced space in early stages
-    const lengthWeight = 5; // Reward longer snakes
 
-    const factors = [
-      gameState.getScore() * foodWeight, // Reward higher scores
-      -(foodDistance * foodWeight), // Penalize distance to food
-      directionalBonus * foodWeight, // Reward moving towards food
-      -(pathDistance * pathWeight), // Penalize longer paths
-      -((gameState.width * gameState.height - availableSpace) * spaceWeight), // Penalize reduced space
-      snakeLength * lengthWeight, // Reward longer snakes
-    ];
-
-    return factors.reduce((acc, val) => acc + val, 0);
+    return (
+      gameState.getScore() * foodWeight - // Reward higher scores
+      foodDistance * foodWeight + // Penalize distance to food
+      foodBonus + // Large bonus for eating food
+      pathDistance * pathWeight // Penalize longer paths
+    );
   }
 
   private calculateFoodDistance(head: Position, food: Position): number {
     return Math.abs(head.x - food.x) + Math.abs(head.y - food.y); // Manhattan distance
-  }
-
-  private getDirectionalBonus(snake: Position[], food: Position): number {
-    const head = snake[0];
-    const xDirection = Math.sign(food.x - head.x);
-    const yDirection = Math.sign(food.y - head.y);
-
-    // Bonus for moving towards food
-    return (
-      (xDirection === Math.sign(head.x) ? 10 : 0) +
-      (yDirection === Math.sign(head.y) ? 10 : 0)
-    );
-  }
-
-  private calculateAvailableSpace(gameState: GameState): number {
-    const { snake, width, height } = gameState;
-    const head = snake[0];
-
-    // Create a grid to track visited cells
-    const visited = new Array(width)
-      .fill(null)
-      .map(() => new Array(height).fill(false));
-
-    // Mark the snake's body as visited
-    for (const segment of snake) {
-      visited[segment.x][segment.y] = true;
-    }
-
-    // Initialize a queue for BFS
-    const queue: Position[] = [head];
-    let availableSpace = 0;
-
-    // Perform BFS
-    while (queue.length > 0) {
-      const current = queue.shift()!;
-
-      // Skip if already visited
-      if (visited[current.x][current.y]) continue;
-
-      // Mark as visited
-      visited[current.x][current.y] = true;
-      availableSpace++;
-
-      // Explore neighbors
-      const neighbors = this.getNeighbors(current, width, height);
-      for (const neighbor of neighbors) {
-        if (!visited[neighbor.x][neighbor.y]) {
-          queue.push(neighbor);
-        }
-      }
-    }
-
-    return availableSpace;
-  }
-
-  private getNeighbors(
-    position: Position,
-    width: number,
-    height: number
-  ): Position[] {
-    const neighbors: Position[] = [];
-    if (position.x > 0) neighbors.push({ x: position.x - 1, y: position.y });
-    if (position.x < width - 1)
-      neighbors.push({ x: position.x + 1, y: position.y });
-    if (position.y > 0) neighbors.push({ x: position.x, y: position.y - 1 });
-    if (position.y < height - 1)
-      neighbors.push({ x: position.x, y: position.y + 1 });
-    return neighbors;
   }
 
   private getCachedPath(
