@@ -1,114 +1,7 @@
 import { Position } from "@/types";
 import { Agent } from "@/agents/Agent.inteface";
 import { GameState } from "@/game/GameState.inteface";
-
-class AStar {
-  private width: number;
-  private height: number;
-  private snake: Position[];
-  private food: Position;
-  constructor(
-    snake: Position[],
-    food: Position,
-    width: number,
-    height: number
-  ) {
-    this.snake = snake;
-    this.food = food;
-    this.width = width;
-    this.height = height;
-  }
-
-  private heuristic(start: Position, end: Position): number {
-    return Math.abs(start.x - end.x) + Math.abs(start.y - end.y); // Manhattan distance
-  }
-
-  private reconstructPath(
-    cameFrom: Position[][],
-    current: Position
-  ): Position[] {
-    const totalPath = [current];
-    while (cameFrom[current.x][current.y] !== null) {
-      current = cameFrom[current.x][current.y];
-      totalPath.unshift(current);
-    }
-    return totalPath;
-  }
-
-  private getNeighbors(current: Position): Position[] {
-    const neighbors: Position[] = [];
-    if (current.x > 0) {
-      neighbors.push({ x: current.x - 1, y: current.y });
-    }
-    if (current.x < this.width - 1) {
-      neighbors.push({ x: current.x + 1, y: current.y });
-    }
-    if (current.y > 0) {
-      neighbors.push({ x: current.x, y: current.y - 1 });
-    }
-    if (current.y < this.height - 1) {
-      neighbors.push({ x: current.x, y: current.y + 1 });
-    }
-    return neighbors;
-  }
-
-  public findPath(): Position[] {
-    const start = this.snake[0];
-    const end = this.food;
-    const openList = [start];
-    const closedList: Position[] = [];
-    const gScore = new Array(this.width)
-      .fill(null)
-      .map(() => new Array(this.height).fill(Infinity));
-    const fScore = new Array(this.width)
-      .fill(null)
-      .map(() => new Array(this.height).fill(Infinity));
-    const cameFrom = new Array(this.width)
-      .fill(null)
-      .map(() => new Array(this.height).fill(null));
-    gScore[start.x][start.y] = 0;
-    fScore[start.x][start.y] = this.heuristic(start, end);
-
-    while (openList.length > 0) {
-      let current = openList.reduce(
-        (acc, val) => (fScore[val.x][val.y] < fScore[acc.x][acc.y] ? val : acc),
-        openList[0]
-      );
-
-      if (current.x === end.x && current.y === end.y) {
-        return this.reconstructPath(cameFrom, current);
-      }
-
-      openList.splice(openList.indexOf(current), 1);
-      closedList.push(current);
-
-      const neighbors = this.getNeighbors(current);
-      for (const neighbor of neighbors) {
-        if (
-          closedList.some((pos) => pos.x === neighbor.x && pos.y === neighbor.y)
-        ) {
-          continue;
-        }
-
-        const tentativeGScore = gScore[current.x][current.y] + 1;
-        if (
-          !openList.some((pos) => pos.x === neighbor.x && pos.y === neighbor.y)
-        ) {
-          openList.push(neighbor);
-        } else if (tentativeGScore >= gScore[neighbor.x][neighbor.y]) {
-          continue;
-        }
-
-        cameFrom[neighbor.x][neighbor.y] = current;
-        gScore[neighbor.x][neighbor.y] = tentativeGScore;
-        fScore[neighbor.x][neighbor.y] =
-          gScore[neighbor.x][neighbor.y] + this.heuristic(neighbor, end);
-      }
-    }
-
-    return [];
-  }
-}
+import { AStar } from "./AStar";
 
 export class MinMaxAgent implements Agent {
   private maxDepth: number;
@@ -242,20 +135,41 @@ export class MinMaxAgent implements Agent {
       Math.abs(head.x - food.x) + Math.abs(head.y - food.y) === 1;
     const foodBonus = isAdjacentToFood ? 10000 : 0; // Large bonus for eating food
 
+    // Self-collision penalty
+    const selfCollisionPenalty = this.calculateSelfCollisionRisk(snake);
+
     // Combine evaluation factors
     const foodWeight = 100; // Prioritize food
     const pathWeight = 10; // Penalize longer paths
+    const collisionWeight = 50; // Penalize self-collision risks
 
     return (
       gameState.getScore() * foodWeight - // Reward higher scores
       foodDistance * foodWeight + // Penalize distance to food
       foodBonus + // Large bonus for eating food
-      pathDistance * pathWeight // Penalize longer paths
+      pathDistance * pathWeight - // Penalize longer paths
+      selfCollisionPenalty * collisionWeight // Penalize self-collision risks
     );
   }
 
   private calculateFoodDistance(head: Position, food: Position): number {
     return Math.abs(head.x - food.x) + Math.abs(head.y - food.y); // Manhattan distance
+  }
+
+  private calculateSelfCollisionRisk(snake: Position[]): number {
+    const head = snake[0];
+    let risk = 0;
+
+    // Check how close the head is to the body
+    for (let i = 1; i < snake.length; i++) {
+      const distance =
+        Math.abs(head.x - snake[i].x) + Math.abs(head.y - snake[i].y);
+      if (distance <= 2) {
+        risk += 1 / distance; // Increase risk for closer body segments
+      }
+    }
+
+    return risk;
   }
 
   private getCachedPath(
