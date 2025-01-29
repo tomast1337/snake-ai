@@ -27,9 +27,9 @@ export class AStar {
     const factor = 1 + (this.snake.length / this.width) * 3;
 
     if (manhattan > this.width / factor) {
-      return manhattan;
-    } else {
       return euclidian;
+    } else {
+      return manhattan;
     }
   }
 

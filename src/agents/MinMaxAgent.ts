@@ -149,7 +149,7 @@ export class MinMaxAgent implements Agent {
     const snakeTooLongSidePenalty = snakeMaxSideLength >= width - 3 ? 100 : 0;
 
     // if the space is split, penalize
-    const spaceSplitPenalty = this.SplitsSpace(gameState) ? -200 : 0;
+    //const spaceSplitPenalty = this.SplitsSpace(gameState) ? -width * width : 0;
 
     // Combine evaluation factors
     const foodWeight = 100; // Prioritize food
@@ -163,8 +163,7 @@ export class MinMaxAgent implements Agent {
       pathDistance * pathWeight - // Penalize longer paths
       selfCollisionPenalty * collisionWeight - // Penalize self-collision risks
       snakeTooLongSidePenalty +
-      uShapePenalty +
-      spaceSplitPenalty
+      uShapePenalty //+spaceSplitPenalty
     );
   }
 
@@ -205,7 +204,7 @@ export class MinMaxAgent implements Agent {
       const distance =
         Math.abs(head.x - snake[i].x) + Math.abs(head.y - snake[i].y);
       if (distance <= 2) {
-        risk += 1 / distance; // Increase risk for closer body segments
+        risk += 5 / distance; // Increase risk for closer body segments
       }
     }
 
@@ -240,7 +239,7 @@ export class MinMaxAgent implements Agent {
       { position: head, depth: 0 },
     ];
     let visitedCount = 0;
-    const maxDepth = snake.length + 1;
+    const maxDepth = snake.length / 5 + 1;
 
     const getNeighbors = (current: Position): Position[] => {
       const neighbors: Position[] = [];

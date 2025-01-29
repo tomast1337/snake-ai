@@ -16,7 +16,7 @@ type SnakeGameConfig = {
 
 // snake-game.ts
 export class SnakeGame implements GameState {
-  private readonly frameTime = 100;
+  private readonly frameTime = 50;
   private canvas?: HTMLCanvasElement;
   private scoreElement?: HTMLElement;
   private ctx!: CanvasRenderingContext2D;

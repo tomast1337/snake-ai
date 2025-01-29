@@ -16,14 +16,9 @@ document.querySelector<HTMLDivElement>("#app")!.innerHTML = `
   <button class="start-button" id="start-btn">Start Game</button>
   <div class="flex">
     <div>
-      <h2 style="color: #4CAF50;">Player Snake</h2>
-      <div class="score" id="score">Score: 0</div>
-      <canvas class="game-board" id="game-board" style="width: 400px; height: 400px;"></canvas>
-    </div>
-    <div>
       <h2 style="color: #f44336;">AI Snake</h2>
       <div class="score" id="score-ia">Score: 0</div>
-      <canvas class="game-board" id="game-board-ai" style="width: 400px; height: 400px;"></canvas>
+      <canvas class="game-board" id="game-board-ai" style="width: 600px; height: 600px;"></canvas>
     </div>
   </div>
   </section>
@@ -67,17 +62,11 @@ fetch("/README.md")
 
 const now = new Date().toISOString();
 
-const gamePlayer = new SnakeGame({
-  canvasId: "game-board",
-  scoreElementId: "score",
-  seed: now,
-  boardsize: 20 * 25,
-});
 const gameIA = new SnakeGame({
   canvasId: "game-board-ai",
   scoreElementId: "score-ia",
   seed: now,
-  boardsize: 20 * 25,
+  boardsize: 20 * 20,
 });
 
 const startButton = document.getElementById("start-btn")! as HTMLButtonElement;
@@ -87,7 +76,6 @@ const startGame = () => {
   startButton.style.cursor = "not-allowed";
   startButton.style.backgroundColor = "red";
 
-  gamePlayer.startGame();
   gameIA.startAIGame(new MinMaxAgent());
 };
 const stopGame = () => {
@@ -95,7 +83,6 @@ const stopGame = () => {
   startButton.style.cursor = "pointer";
   startButton.style.backgroundColor = "green";
 
-  gamePlayer.stop();
   gameIA.stop();
 };
 
