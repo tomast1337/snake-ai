@@ -18,7 +18,19 @@ export class AStar {
   }
 
   private heuristic(start: Position, end: Position): number {
-    return Math.abs(start.x - end.x) + Math.abs(start.y - end.y); // Manhattan distance
+    const euclidian = Math.sqrt(
+      Math.pow(start.x - end.x, 2) + Math.pow(start.y - end.y, 2)
+    );
+    const manhattan = Math.abs(start.x - end.x) + Math.abs(start.y - end.y);
+
+    // if more than 1/4 of the board away, use manhattan distance else use euclidian distance
+    const factor = 1 + (this.snake.length / this.width) * 3;
+
+    if (manhattan > this.width / factor) {
+      return manhattan;
+    } else {
+      return euclidian;
+    }
   }
 
   private reconstructPath(
@@ -35,18 +47,27 @@ export class AStar {
 
   private getNeighbors(current: Position): Position[] {
     const neighbors: Position[] = [];
-    if (current.x > 0) {
-      neighbors.push({ x: current.x - 1, y: current.y });
+    const snakeBodySet = new Set(this.snake.map((pos) => `${pos.x},${pos.y}`));
+
+    const possibleMoves = [
+      { x: current.x - 1, y: current.y },
+      { x: current.x + 1, y: current.y },
+      { x: current.x, y: current.y - 1 },
+      { x: current.x, y: current.y + 1 },
+    ];
+
+    for (const move of possibleMoves) {
+      if (
+        move.x >= 0 &&
+        move.x < this.width &&
+        move.y >= 0 &&
+        move.y < this.height &&
+        !snakeBodySet.has(`${move.x},${move.y}`)
+      ) {
+        neighbors.push(move);
+      }
     }
-    if (current.x < this.width - 1) {
-      neighbors.push({ x: current.x + 1, y: current.y });
-    }
-    if (current.y > 0) {
-      neighbors.push({ x: current.x, y: current.y - 1 });
-    }
-    if (current.y < this.height - 1) {
-      neighbors.push({ x: current.x, y: current.y + 1 });
-    }
+
     return neighbors;
   }
 

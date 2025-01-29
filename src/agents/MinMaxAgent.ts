@@ -135,14 +135,22 @@ export class MinMaxAgent implements Agent {
     const foodBonus = Math.exp(-pathDistance) * ((width * width) / snakeLength);
     // Scale the bonus
 
+    // U shape penalty
+    const hasU = this.doesHaveU(snake);
+    const uShapePenalty = hasU ? -100 : 0;
+
     // Self-collision penalty
     const selfCollisionPenalty = this.calculateSelfCollisionRisk(snake);
 
     // Snake max side length
     const snakeMaxSideLength = this.getSnakeMaxSideLength(gameState);
+
     // if the snake is too long has a the same length of the board - 3 penalize
-    const snakeTooLongSidePenalty =
-      snakeMaxSideLength >= width * width - 3 ? 100 : 0;
+    const snakeTooLongSidePenalty = snakeMaxSideLength >= width - 3 ? 100 : 0;
+
+    // if the space is split, penalize
+    const spaceSplitPenalty = this.SplitsSpace(gameState) ? -200 : 0;
+
     // Combine evaluation factors
     const foodWeight = 100; // Prioritize food
     const pathWeight = 10; // Penalize longer paths
@@ -154,8 +162,17 @@ export class MinMaxAgent implements Agent {
       foodBonus + // Large bonus for eating food
       pathDistance * pathWeight - // Penalize longer paths
       selfCollisionPenalty * collisionWeight - // Penalize self-collision risks
-      snakeTooLongSidePenalty
+      snakeTooLongSidePenalty +
+      uShapePenalty +
+      spaceSplitPenalty
     );
+  }
+
+  private doesHaveU(snake: Position[]): boolean {
+    // Check if the snake head and 4th segment are in a U shape
+    if (snake.length < 4) return false;
+    if (snake[0].x === snake[3].x && snake[0].y === snake[3].y) return true;
+    return false;
   }
 
   private getSnakeMaxSideLength(gameState: GameState): number {
@@ -177,10 +194,6 @@ export class MinMaxAgent implements Agent {
     }
 
     return Math.max(maxSideLength, sideLength);
-  }
-
-  private calculateFoodDistance(head: Position, food: Position): number {
-    return Math.abs(head.x - food.x) + Math.abs(head.y - food.y); // Manhattan distance
   }
 
   private calculateSelfCollisionRisk(snake: Position[]): number {
@@ -213,5 +226,59 @@ export class MinMaxAgent implements Agent {
     const path = aStar.findPath();
     this.pathCache.set(key, path);
     return path;
+  }
+
+  private SplitsSpace(gameState: GameState): boolean {
+    // BFS Flood Fill Algorithm to find if the space is split from the point of the head
+    const head: Position = gameState.snake[0];
+    const snake: Position[] = [...gameState.snake].slice(1); // Remove the head
+    const { width, height } = gameState;
+
+    const totalTiles = width * height;
+    const visited = new Set<string>();
+    const queue: { position: Position; depth: number }[] = [
+      { position: head, depth: 0 },
+    ];
+    let visitedCount = 0;
+    const maxDepth = snake.length + 1;
+
+    const getNeighbors = (current: Position): Position[] => {
+      const neighbors: Position[] = [];
+      const possibleMoves = [
+        { x: current.x - 1, y: current.y },
+        { x: current.x + 1, y: current.y },
+        { x: current.x, y: current.y - 1 },
+        { x: current.x, y: current.y + 1 },
+      ];
+      for (const move of possibleMoves) {
+        if (
+          move.x >= 0 &&
+          move.x < width &&
+          move.y >= 0 &&
+          move.y < height &&
+          !snake.some((segment) => segment.x === move.x && segment.y === move.y)
+        ) {
+          neighbors.push(move);
+        }
+      }
+      return neighbors;
+    };
+
+    while (queue.length > 0) {
+      const { position: current, depth } = queue.shift()!;
+      if (depth > maxDepth) continue; // Skip if the current depth exceeds the maximum depth
+      const key = `${current.x},${current.y}`;
+      if (visited.has(key)) continue;
+      visited.add(key);
+      visitedCount++;
+      const neighbors = getNeighbors(current);
+      for (const neighbor of neighbors) {
+        queue.push({ position: neighbor, depth: depth + 1 });
+      }
+    }
+
+    const spaceRatio = visitedCount / totalTiles;
+
+    return spaceRatio < 0.5;
   }
 }
