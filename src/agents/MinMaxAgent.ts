@@ -112,14 +112,15 @@ export class MinMaxAgent implements Agent {
   }
 
   private evaluateState(gameState: GameState): number {
-    const { snake, food } = gameState;
-    const head = snake[0];
+    const { snake, food, width } = gameState;
+    //const head = snake[0];
+    const snakeLength = snake.length;
 
     // If the game is over, return the worst possible score
     if (gameState.isGameOver()) return Number.NEGATIVE_INFINITY;
 
     // Food distance (Manhattan distance)
-    const foodDistance = this.calculateFoodDistance(head, food);
+    //const foodDistance = this.calculateFoodDistance(head, food);
 
     // A* pathfinding to food
     const path = this.getCachedPath(
@@ -130,14 +131,18 @@ export class MinMaxAgent implements Agent {
     );
     const pathDistance = path.length;
 
-    // Bonus for being adjacent to the food
-    const isAdjacentToFood =
-      Math.abs(head.x - food.x) + Math.abs(head.y - food.y) === 1;
-    const foodBonus = isAdjacentToFood ? 10000 : 0; // Large bonus for eating food
+    // Exponential bonus for being closer to the food
+    const foodBonus = Math.exp(-pathDistance) * ((width * width) / snakeLength);
+    // Scale the bonus
 
     // Self-collision penalty
     const selfCollisionPenalty = this.calculateSelfCollisionRisk(snake);
 
+    // Snake max side length
+    const snakeMaxSideLength = this.getSnakeMaxSideLength(gameState);
+    // if the snake is too long has a the same length of the board - 3 penalize
+    const snakeTooLongSidePenalty =
+      snakeMaxSideLength >= width * width - 3 ? 100 : 0;
     // Combine evaluation factors
     const foodWeight = 100; // Prioritize food
     const pathWeight = 10; // Penalize longer paths
@@ -145,11 +150,33 @@ export class MinMaxAgent implements Agent {
 
     return (
       gameState.getScore() * foodWeight - // Reward higher scores
-      foodDistance * foodWeight + // Penalize distance to food
+      pathDistance * foodWeight + // Penalize distance to food
       foodBonus + // Large bonus for eating food
       pathDistance * pathWeight - // Penalize longer paths
-      selfCollisionPenalty * collisionWeight // Penalize self-collision risks
+      selfCollisionPenalty * collisionWeight - // Penalize self-collision risks
+      snakeTooLongSidePenalty
     );
+  }
+
+  private getSnakeMaxSideLength(gameState: GameState): number {
+    const { snake } = gameState;
+
+    // find the max side length of the snake
+    let maxSideLength = 0;
+    let sideLength = 1;
+    let prev = snake[0];
+    for (let i = 1; i < snake.length; i++) {
+      const curr = snake[i];
+      if (curr.x === prev.x || curr.y === prev.y) {
+        sideLength++;
+      } else {
+        maxSideLength = Math.max(maxSideLength, sideLength);
+        sideLength = 1;
+      }
+      prev = curr;
+    }
+
+    return Math.max(maxSideLength, sideLength);
   }
 
   private calculateFoodDistance(head: Position, food: Position): number {
