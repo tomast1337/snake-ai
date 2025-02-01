@@ -38,7 +38,7 @@ export class SnakeGame implements GameState {
   constructor({
     canvasId,
     scoreElementId,
-    boardsize = 20 * 15,
+    boardsize = 20 * 20,
     seed = "42",
   }: SnakeGameConfig = {}) {
     this.rng = seedrandom(seed);
@@ -209,11 +209,27 @@ export class SnakeGame implements GameState {
     }
 
     this.gameLoop = window.setInterval(() => {
-      const nextMove = agent.getNextMove(this);
-      this.dx = nextMove.x - this.snake[0].x;
-      this.dy = nextMove.y - this.snake[0].y;
-      this.updateGame();
+      try {
+        if (this.getValidNextPositions().length === 0) {
+          this.endGame();
+          return;
+        }
+        const nextMove = agent.getNextMove(this);
+        this.dx = nextMove.x - this.snake[0].x;
+        this.dy = nextMove.y - this.snake[0].y;
+        this.updateGame();
+      } catch (e) {
+        this.endGame();
+        return;
+      }
     }, this.frameTime) as unknown as number;
+  }
+
+  public applyAction(action: Position) {
+    this.dx = action.x - this.snake[0].x;
+    this.dy = action.y - this.snake[0].y;
+    this.updateGame();
+    return this;
   }
 
   public stop() {
