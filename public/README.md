@@ -1,14 +1,20 @@
-# Exploring MinMax AI-Powered Snake Game in TypeScript
+# Exploring AI-Powered Snake Game in TypeScript
 
-In this article, I'll walk through the implementation of a classic Snake game with an AI player using TypeScript. We'll explore how to structure the game logic, implement the MinMax algorithm, and create an interface that allows both human and AI players to interact with the game.
+---
 
-## Project Architecture
+## **Project Overview**
 
-The project is built using TypeScript and follows a modular design with clear interfaces. Here's the core structure:
+The goal of this project is to create a Snake game where the snake can be controlled either by a human player or an AI agent. The AI agent uses the **MinMax algorithm** with **alpha-beta pruning** to make decisions, simulating future game states to choose the best possible move. The game is built using TypeScript, ensuring type safety and modularity.
 
-### Game State Interface
+---
 
-The foundation of our implementation is the `GameState` interface, which defines the contract for our game state:
+## **Project Architecture**
+
+The project is designed with a modular architecture, separating the game logic, rendering, and AI decision-making. Here’s a breakdown of the core components:
+
+### **1. Game State Interface**
+
+The foundation of the game is the `GameState` interface, which defines the contract for the game state. This interface provides all the necessary information for both rendering the game and making AI decisions.
 
 ```typescript
 export interface GameState {
@@ -22,7 +28,7 @@ export interface GameState {
   snake: Position[];
   // Food position
   food: Position;
-  // Game state methods, these are mostly used by the AI agent
+  // Game state methods, mostly used by the AI agent
   getValidNextPositions: () => Position[];
   getNextGameState: (nextMove: Position) => GameState;
   getScore: () => number;
@@ -30,42 +36,50 @@ export interface GameState {
 }
 ```
 
-This interface is crucial as it provides all the necessary information for both the game rendering and AI decision-making.
+This interface ensures that the game logic is decoupled from the rendering logic, making it easier to test and extend.
 
-Anothers interfaces are `Position` and `GameDrawer`, thoise just define the structure of a postion in a cartesian plane and the methods that a game drawer should implement, just to so the logic of the game is separated from the rendering logic, so I can implement a game drawer for the console or a no draw game drawer for the AI.
+---
+
+### **2. Position and GameDrawer Interfaces**
+
+The `Position` interface defines a point in a 2D Cartesian plane, while the `GameDrawer` interface abstracts the rendering logic. This separation allows us to implement different renderers, such as a canvas-based renderer for the browser or a console-based renderer for debugging.
 
 ```typescript
+export interface Position {
+  x: number;
+  y: number;
+}
+
 export interface GameDrawer {
   drawGame(state: SnakeGame): void;
   clear(): void;
 }
-
-export interface Agent {
-  getNextMove: (gameState: GameState) => Position;
-}
 ```
 
-### Core Game Implementation
+---
 
-The `SnakeGame` class implements the game logic with key features:
+### **3. Core Game Implementation**
 
-- Canvas-based rendering
-- Keyboard controls (Arrow keys and WASD)
-- Collision detection
-- Score tracking
-- Support for both human and AI players
+The `SnakeGame` class implements the game logic, including:
 
-### AI Agent Implementation
+- **Canvas-based rendering**: The game can be rendered in a browser using HTML5 Canvas.
+- **Keyboard controls**: Players can control the snake using arrow keys or WASD.
+- **Collision detection**: The game detects collisions with walls and the snake’s own body.
+- **Score tracking**: The score increases as the snake eats food.
+- **Support for AI players**: The game can be played by an AI agent that implements the `Agent` interface.
 
-The AI player uses the MinMax algorithm with alpha-beta pruning. The agent evaluates game states by considering:
+---
 
-- Distance to food
-- Wall proximity
-- Self-collision risk
-- Current score
-- Generate future game states to simulate possible moves
+### **4. AI Agent Implementation**
 
-All agents implement the `Agent` interface, which defines the `getNextMove` method:
+The AI player uses the **MinMax algorithm** with **alpha-beta pruning** to evaluate future game states and choose the best move. The agent considers several factors when evaluating a move:
+
+- **Distance to food**: The closer the snake is to the food, the higher the score.
+- **Self-collision risk**: Moves that bring the snake closer to its own body are penalized.
+- **Wall proximity**: Moves that bring the snake closer to the walls are penalized.
+- **Future game states**: The agent simulates future moves to anticipate the consequences of its actions.
+
+All AI agents implement the `Agent` interface, which defines a single method: `getNextMove`.
 
 ```typescript
 interface Agent {
@@ -73,7 +87,11 @@ interface Agent {
 }
 ```
 
-A basic agent implementation just for exampling the code is the `RandomAgent`, that just returns a random valid move.
+---
+
+### **5. Example: Random Agent**
+
+To demonstrate the flexibility of the architecture, we can implement a simple `RandomAgent` that chooses a random valid move. This agent is useful for testing and benchmarking.
 
 ```typescript
 export class RandomAgent implements Agent {
@@ -83,3 +101,5 @@ export class RandomAgent implements Agent {
   }
 }
 ```
+
+---
