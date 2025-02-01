@@ -9,7 +9,7 @@ import { AStarPathfinderAgent } from "./agents/AStarPathfinderAgent";
 // Update the HTML to include Snake game elements
 document.querySelector<HTMLDivElement>("#app")!.innerHTML = `
 <header>
-    <h1 style="font-family: 'Permanent Marker', cursive; color: #8c1aff;">Min Max Snake Game</h1>
+    <h1 style="font-family: 'Permanent Marker', cursive; color: #8c1aff;">AI Snake Game</h1>
 </header>
 <main>
 <section id="game">
