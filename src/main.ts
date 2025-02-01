@@ -1,11 +1,11 @@
-import "@/style.css";
-import "@/markdown.css";
-import "highlight.js/styles/base16/classic-light.css";
 import { SnakeGame } from "@/game/SnakeGame";
-import { MinMaxAgent } from "@/agents/MinMaxAgent";
+import "@/markdown.css";
+import "@/style.css";
+import hljs from "highlight.js";
+import "highlight.js/styles/base16/classic-light.css";
 import { Marked } from "marked";
 import { markedHighlight } from "marked-highlight";
-import hljs from "highlight.js";
+import { AStarPathfinderAgent } from "./agents/AStarPathfinderAgent";
 // Update the HTML to include Snake game elements
 document.querySelector<HTMLDivElement>("#app")!.innerHTML = `
 <header>
@@ -66,7 +66,7 @@ const gameIA = new SnakeGame({
   canvasId: "game-board-ai",
   scoreElementId: "score-ia",
   seed: now,
-  boardsize: 20 * 20,
+  boardsize: 20 * 5,
 });
 
 const startButton = document.getElementById("start-btn")! as HTMLButtonElement;
@@ -76,7 +76,7 @@ const startGame = () => {
   startButton.style.cursor = "not-allowed";
   startButton.style.backgroundColor = "red";
 
-  gameIA.startAIGame(new MinMaxAgent());
+  gameIA.startAIGame(new AStarPathfinderAgent());
 };
 const stopGame = () => {
   startButton.textContent = "Start Game";
