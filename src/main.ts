@@ -1,95 +1,80 @@
-import { SnakeGame } from "@/game/SnakeGame";
 import "@/markdown.css";
 import "@/style.css";
-import hljs from "highlight.js";
 import "highlight.js/styles/base16/classic-light.css";
-import { Marked } from "marked";
-import { markedHighlight } from "marked-highlight";
 import { AStarPathfinderAgent } from "./agents/AStarPathfinderAgent";
+import { displayMarkdownContent } from "./RenderText";
+import { displayGameComponents } from "./RenderGame";
+import { RLAgent } from "./agents/RLAgent";
+import { GameState } from "./game/GameState.inteface";
+import { SnakeGame } from "./game/SnakeGame";
 // Update the HTML to include Snake game elements
 document.querySelector<HTMLDivElement>("#app")!.innerHTML = `
 <header>
     <h1 style="font-family: 'Permanent Marker', cursive; color: #8c1aff;">AI Snake Game</h1>
 </header>
+
 <main>
-<section id="game">
-  <button class="start-button" id="start-btn">Start Game</button>
-  <div class="flex">
-    <div>
-      <h2 style="color: #f44336;">AI Snake</h2>
-      <div class="score" id="score-ia">Score: 0</div>
-      <canvas class="game-board" id="game-board-ai" style="width: 600px; height: 600px;"></canvas>
-    </div>
-  </div>
-  </section>
-  <section id="article" class="markdown">
-  </section>
+    <section id="game"></section>
+    <section id="article" class="markdown"></section>
 </main>
+
 <footer>
   <p style="font-family: 'Permanent Marker', cursive; color: #8c1aff;">Created by <a href="https://www.linkedin.com/in/nicolas-vycas/" style="color: #4CAF50;">Nicolas Vycas Nery</a></p>
 </footer>
 `;
 
-const explanation = document.getElementById("article")! as HTMLDivElement;
-fetch("/README.md")
-  .then((response) => response.text())
-  .then((text) => {
-    const marked = new Marked(
-      markedHighlight({
-        emptyLangClass: "hljs",
-        langPrefix: "hljs language-",
-        highlight: (code, lang) => {
-          if ((lang && hljs.getLanguage(lang)) || lang === "typescript") {
-            try {
-              return hljs.highlight(code, { language: lang }).value;
-            } catch (error) {
-              console.error("Error highlighting code", error);
-            }
-          }
-          return "";
-        },
-      })
-    );
-    explanation.innerHTML = marked.parse(text, {
-      gfm: true,
-      breaks: true,
-      async: false,
-    });
-  })
-  .catch((error) => {
-    console.error("Error fetching README.md", error);
-  });
-
-const now = new Date().toISOString();
-
-const gameIA = new SnakeGame({
-  canvasId: "game-board-ai",
-  scoreElementId: "score-ia",
-  seed: now,
-  boardsize: 20 * 5,
-});
-
-const startButton = document.getElementById("start-btn")! as HTMLButtonElement;
-
-const startGame = () => {
-  startButton.textContent = "Game in progress, click to stop";
-  startButton.style.cursor = "not-allowed";
-  startButton.style.backgroundColor = "red";
-
-  gameIA.startAIGame(new AStarPathfinderAgent());
-};
-const stopGame = () => {
-  startButton.textContent = "Start Game";
-  startButton.style.cursor = "pointer";
-  startButton.style.backgroundColor = "green";
-
-  gameIA.stop();
-};
-
-startButton.addEventListener("click", () => {
-  if (startButton.textContent === "Start Game") {
-    startGame();
-  } else {
-    stopGame();
+displayMarkdownContent();
+/*
+const calculateReward = (
+  currentState: GameState,
+  nextState: GameState
+): number => {
+  if (nextState.isGameOver()) {
+    return -100; // Penalty for losing the game
   }
-});
+
+  const currentHead = currentState.snake[0];
+  const nextHead = nextState.snake[0];
+  const food = currentState.food;
+
+  // Reward for moving closer to the food
+  const currentDistance =
+    Math.abs(currentHead.x - food.x) + Math.abs(currentHead.y - food.y);
+  const nextDistance =
+    Math.abs(nextHead.x - food.x) + Math.abs(nextHead.y - food.y);
+
+  if (nextDistance < currentDistance) {
+    return 10; // Reward for moving closer to the food
+  } else if (nextDistance > currentDistance) {
+    return -10; // Penalty for moving away from the food
+  }
+
+  return 0; // No reward for neutral moves
+};
+
+const agent = new RLAgent();
+
+const episodeCount = 1000;
+console.log(`Training the agent for ${episodeCount} episodes...`);
+for (let episode = 0; episode < episodeCount; episode++) {
+  let isGameOver = false;
+  const gameState = new SnakeGame({
+    boardsize: 20 * 20,
+    seed: new Date().getTime().toString(),
+  });
+  console.log(`Episode ${episode + 1}`);
+  while (!isGameOver) {
+    const action = agent.getNextMove(gameState); // Get the next move
+    const nextGameState = gameState.applyAction(action); // Get the next game state
+    const reward = calculateReward(gameState, nextGameState); // Calculate the reward
+
+    agent.updateQTable(gameState, action, reward, nextGameState); // Update the Q-table
+
+    isGameOver = gameState.isGameOver();
+  }
+}
+
+agent.saveModel();
+*/
+displayGameComponents(new AStarPathfinderAgent(), "A* Pathfinder");
+//displayGameComponents(new RLAgent(), "Reinforcement Learning");
